@@ -22,5 +22,11 @@
   "bugs": {
     "url": "https://github.com/thereactivestack/meteor-react-router-ssr/issues"
   },
-  "homepage": "https://github.com/thereactivestack/meteor-react-router-ssr#readme"
+  "homepage": "https://github.com/thereactivestack/meteor-react-router-ssr#readme",
+  "dependencies": {
+    "cheerio": "~0.20.0",
+    "cookie-parser": "~1.4.1",
+    "promise": "~7.1.1",
+    "underscore": "~1.8.3"
+  }
 }

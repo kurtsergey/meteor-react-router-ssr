@@ -1,0 +1,3 @@
+ReactRouterSSR = {};
+
+export default ReactRouterSSR;
