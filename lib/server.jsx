@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import {RouterContext, match as ReactRouterMatch, history as ReactRouterHistory} from 'react-router';
+import {RouterContext, match as ReactRouterMatch} from 'react-router';
+import {useQueries, createMemoryHistory} from 'history';
 import {url} from 'url';
 import {Fiber} from 'fibers';
 import cookieParser from 'cookie-parser';
@@ -8,7 +9,7 @@ import Cheerio from 'cheerio';
 import {Mongo} from 'meteor/mongo';
 import {routepolicy} from 'meteor/routepolicy';
 import {_} from 'underscore';
-import {Promise} from 'promise';
+import Promise from 'promise';
 import {InjectData} from 'meteor/meteorhacks:inject-data';
 import Helmet from "react-helmet";
 import ReactRouterSSR from './react-router-ssr';
@@ -214,7 +215,7 @@ function generateSSRData(serverOptions, context, req, res, renderProps) {
             if (typeof serverOptions.createReduxStore !== 'undefined') {
                 // Create a history and set the current path, in case the callback wants
                 // to bind it to the store using redux-simple-router's syncReduxAndRouter().
-                const history = ReactRouterHistory.useQueries(ReactRouterHistory.createMemoryHistory)();
+                const history = useQueries(createMemoryHistory)();
                 history.replace(req.url);
                 // Create the store, with no initial state.
                 reduxStore = serverOptions.createReduxStore(undefined, history);
@@ -304,7 +305,7 @@ function fetchComponentData(renderProps, reduxStore) {
         .map(component => component.fetchData(reduxStore.getState, reduxStore.dispatch, renderProps));
 
     // Wait until all promises have been resolved.
-    Promise.awaitAll(promises);
+    Promise.all(promises);
 }
 
 function SSRSubscribe(context) {
@@ -361,44 +362,44 @@ function moveScripts(data) {
 }
 
 if (Package.mongo && !Package.autopublish) {
-    // Protect against returning data that has not been published
-    const originalFind = Mongo.Collection.prototype.find;
-    const originalFindOne = Mongo.Collection.prototype.findOne;
-
-    Mongo.Collection.prototype._getSSRCollection = function () {
-        return Mongo.Collection._ssrData[this._name] || new LocalCollection(this._name);
-    };
-
-    Mongo.Collection.prototype.findOne = function (...args) {
-        if (!Mongo.Collection._isSSR) {
-            return originalFindOne.apply(this, args);
-        }
-
-        // collection transforms compatibility
-        const selector = args.length === 0 ? {} : args[0];
-        let options = args.length < 2 ? {} : args[1];
-
-        if (typeof this._transform === 'function') {
-            options.transform = this._transform;
-        }
-        return this._getSSRCollection().findOne(selector, options);
-    };
-
-    Mongo.Collection.prototype.find = function (...args) {
-        if (!Mongo.Collection._isSSR) {
-            return originalFind.apply(this, args);
-        }
-
-        // collection transforms compatibility
-        const selector = args.length === 0 ? {} : args[0];
-        let options = args.length < 2 ? {} : args[1];
-
-        if (typeof this._transform === 'function') {
-            options.transform = this._transform;
-        }
-
-        return this._getSSRCollection().find(selector, options);
-    };
+    ////Protect against returning data that has not been published
+    // const originalFind = Mongo.Collection.prototype.find;
+    // const originalFindOne = Mongo.Collection.prototype.findOne;
+    //
+    // Mongo.Collection.prototype._getSSRCollection = function () {
+    //     return Mongo.Collection._ssrData[this._name] || new LocalCollection(this._name);
+    // };
+    //
+    // Mongo.Collection.prototype.findOne = function (...args) {
+    //     if (!Mongo.Collection._isSSR) {
+    //         return originalFindOne.apply(this, args);
+    //     }
+    //
+    //     // collection transforms compatibility
+    //     const selector = args.length === 0 ? {} : args[0];
+    //     let options = args.length < 2 ? {} : args[1];
+    //
+    //     if (typeof this._transform === 'function') {
+    //         options.transform = this._transform;
+    //     }
+    //     return this._getSSRCollection().findOne(selector, options);
+    // };
+    //
+    // Mongo.Collection.prototype.find = function (...args) {
+    //     if (!Mongo.Collection._isSSR) {
+    //         return originalFind.apply(this, args);
+    //     }
+    //
+    //     // collection transforms compatibility
+    //     const selector = args.length === 0 ? {} : args[0];
+    //     let options = args.length < 2 ? {} : args[1];
+    //
+    //     if (typeof this._transform === 'function') {
+    //         options.transform = this._transform;
+    //     }
+    //
+    //     return this._getSSRCollection().find(selector, options);
+    // };
 
     Mongo.Collection._fakePublish = function (data) {
         // Create a local collection and only add the published data
